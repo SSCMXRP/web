@@ -233,15 +233,16 @@ tr:hover td{background:rgba(255,255,255,.013)}
 
     <!-- REGISTER FORM -->
     <div id="form-reg" class="hidden">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Tu solicitud quedará pendiente hasta que un administrador la apruebe.</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Crea tu cuenta directamente. La placa debe ser en formato MX-XX (ej. MX-01).</p>
       <div class="field"><label>Placa</label><input id="r-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
-      <div class="field"><label>Nombre completo</label><input id="r-nombre" placeholder="Nombre en el RP"/></div>
+      <div class="field"><label>Nombre en tu INE</label><input id="r-nombre" placeholder="Tu nombre real"/></div>
+      <div class="field"><label>Usuario de Roblox</label><input id="r-roblox" placeholder="Tu username de Roblox"/></div>
       <div class="field"><label>Rango</label>
         <select id="r-rango"><option>Policía</option><option>Cabo</option><option>Sargento</option><option>Suboficial</option><option>Oficial</option><option>Subinspector</option><option>Inspector</option><option>Subcomisario</option><option>Comisario</option><option>Director</option></select></div>
       <div class="field"><label>Adscripción / Sector</label><input id="r-adsc" placeholder="Sector Cuauhtémoc..."/></div>
       <div class="field"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mín. 6 caracteres"/></div>
       <div class="field"><label>Confirmar contraseña</label><input id="r-pass2" type="password"/></div>
-      <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doRegister()">+ Enviar solicitud</button>
+      <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doRegister()">+ Crear cuenta</button>
       <div class="divider"></div>
       <div style="text-align:center;font-size:12px;color:var(--muted)">
         ¿Ya tienes cuenta? <button class="link-btn" onclick="switchForm('login')">Iniciar sesión</button>
@@ -394,7 +395,8 @@ tr:hover td{background:rgba(255,255,255,.013)}
     <h3>+ Crear Elemento</h3>
     <div id="crearel-err" class="err-msg hidden"></div>
     <div class="field"><label>Placa</label><input id="ce-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
-    <div class="field"><label>Nombre</label><input id="ce-nombre"/></div>
+    <div class="field"><label>Nombre en INE</label><input id="ce-nombre"/></div>
+    <div class="field"><label>Usuario de Roblox</label><input id="ce-roblox"/></div>
     <div class="field"><label>Rango</label>
       <select id="ce-rango"><option>Policía</option><option>Cabo</option><option>Sargento</option><option>Suboficial</option><option>Oficial</option><option>Subinspector</option><option>Inspector</option><option>Subcomisario</option><option>Comisario</option><option>Director</option></select></div>
     <div class="field"><label>Adscripción</label><input id="ce-adsc"/></div>
@@ -537,9 +539,10 @@ function doLogin(){
   showLoginErr('Placa o contraseña incorrectos, o tu cuenta aún no está aprobada.');
 }
 
-function doRegister(){
+async function doRegister(){
   const placa=document.getElementById('r-placa').value.trim().toUpperCase();
   const nombre=document.getElementById('r-nombre').value.trim();
+  const robloxUser=document.getElementById('r-roblox').value.trim();
   const rango=document.getElementById('r-rango').value;
   const adsc=document.getElementById('r-adsc').value.trim();
   const pass=document.getElementById('r-pass').value;
@@ -547,18 +550,41 @@ function doRegister(){
   document.getElementById('login-err').classList.add('hidden');
   document.getElementById('login-ok').classList.add('hidden');
 
-  if(!placa||!nombre||!pass||!pass2){ showLoginErr('Completa todos los campos.'); return; }
+  if(!placa||!nombre||!robloxUser||!pass||!pass2){ showLoginErr('Completa todos los campos.'); return; }
+  if(!/^MX-\d{2}$/.test(placa)){ showLoginErr('La placa debe ser en formato MX-XX (ej. MX-01).'); return; }
   if(pass!==pass2){ showLoginErr('Las contraseñas no coinciden.'); return; }
   if(pass.length<6){ showLoginErr('Contraseña: mínimo 6 caracteres.'); return; }
   if(getElements().find(e=>e.placa===placa)){ showLoginErr('Esa placa ya está registrada.'); return; }
-  if(getPending().find(e=>e.placa===placa)){ showLoginErr('Ya hay una solicitud pendiente con esa placa.'); return; }
 
-  savePending([...getPending(), {placa,nombre,rango,adscripcion:adsc,password:pass,status:'pendiente',solicitadoEn:nowStr(),records:[]}]);
+  // Fetch Roblox data
+  let robloxUserId=null, robloxAvatarUrl=null;
+  try {
+    const userRes = await fetch('https://users.roblox.com/v1/usernames/users', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({usernames: [robloxUser]})
+    });
+    const userData = await userRes.json();
+    if(userData.data && userData.data.length > 0){
+      robloxUserId = userData.data[0].id;
+      const avatarRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${robloxUserId}&size=150x150&format=Png&isCircular=false`);
+      const avatarData = await avatarRes.json();
+      if(avatarData.data && avatarData.data.length > 0){
+        robloxAvatarUrl = avatarData.data[0].imageUrl;
+      }
+    } else {
+      showLoginErr('Usuario de Roblox no encontrado.'); return;
+    }
+  } catch(e) {
+    showLoginErr('Error al verificar usuario de Roblox.'); return;
+  }
+
+  saveElements([...getElements(), {placa,nombre,robloxUser,robloxUserId,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr()}]);
   const ok=document.getElementById('login-ok');
-  ok.textContent='Solicitud enviada. Espera aprobación de un administrador.';
+  ok.textContent='Cuenta creada exitosamente. Ya puedes iniciar sesión.';
   ok.classList.remove('hidden');
   switchForm('login');
-  ['r-placa','r-nombre','r-adsc','r-pass','r-pass2'].forEach(id=>document.getElementById(id).value='');
+  ['r-placa','r-nombre','r-roblox','r-adsc','r-pass','r-pass2'].forEach(id=>document.getElementById(id).value='');
 }
 
 function showLoginErr(msg){ const el=document.getElementById('login-err'); el.textContent=msg; el.classList.remove('hidden'); }
@@ -855,18 +881,44 @@ function renderElements(){
   </tr>`).join('');
 }
 
-function createElemento(){
+async function createElemento(){
   hideErr('crearel-err');
   const placa=document.getElementById('ce-placa').value.trim().toUpperCase();
   const nombre=document.getElementById('ce-nombre').value.trim();
+  const robloxUser=document.getElementById('ce-roblox').value.trim();
   const rango=document.getElementById('ce-rango').value;
   const adsc=document.getElementById('ce-adsc').value.trim();
   const pass=document.getElementById('ce-pass').value;
-  if(!placa||!nombre||!pass){ showErr('crearel-err','Placa, nombre y contraseña son obligatorios.'); return; }
+  if(!placa||!nombre||!robloxUser||!pass){ showErr('crearel-err','Completa todos los campos.'); return; }
+  if(!/^MX-\d{2}$/.test(placa)){ showErr('crearel-err','La placa debe ser en formato MX-XX.'); return; }
   if(getElements().find(e=>e.placa===placa)){ showErr('crearel-err','Placa ya registrada.'); return; }
-  saveElements([...getElements(),{placa,nombre,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
+
+  // Fetch Roblox data
+  let robloxUserId=null, robloxAvatarUrl=null;
+  try {
+    const userRes = await fetch('https://users.roblox.com/v1/usernames/users', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({usernames: [robloxUser]})
+    });
+    const userData = await userRes.json();
+    if(userData.data && userData.data.length > 0){
+      robloxUserId = userData.data[0].id;
+      const avatarRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${robloxUserId}&size=150x150&format=Png&isCircular=false`);
+      const avatarData = await avatarRes.json();
+      if(avatarData.data && avatarData.data.length > 0){
+        robloxAvatarUrl = avatarData.data[0].imageUrl;
+      }
+    } else {
+      showErr('crearel-err','Usuario de Roblox no encontrado.'); return;
+    }
+  } catch(e) {
+    showErr('crearel-err','Error al verificar usuario de Roblox.'); return;
+  }
+
+  saveElements([...getElements(),{placa,nombre,robloxUser,robloxUserId,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
   toast('Elemento creado: '+placa);
-  ['ce-placa','ce-nombre','ce-adsc','ce-pass'].forEach(id=>document.getElementById(id).value='');
+  ['ce-placa','ce-nombre','ce-roblox','ce-adsc','ce-pass'].forEach(id=>document.getElementById(id).value='');
   closeModal('modal-crearel'); renderElements(); renderHome();
 }
 
@@ -888,7 +940,7 @@ function renderExpediente(){
   document.getElementById('expediente-content').innerHTML=`
     <div class="profile-card">
       <div class="profile-hdr">
-        <div class="avatar">${el.nombre[0]||'?'}</div>
+        <div class="avatar" style="background-image: url('${el.robloxAvatarUrl}'); background-size: cover; background-position: center;">${el.robloxAvatarUrl ? '' : (el.nombre[0]||'?')}</div>
         <div style="flex:1">
           <div class="profile-name">${el.nombre}</div>
           <div class="profile-placa">${el.placa}</div>
@@ -942,6 +994,7 @@ function renderExpInfo(el){
     <div id="info-view-${el.placa}">
       <div class="info-grid">
         <div class="info-item"><label>Nombre</label><span>${el.nombre}</span></div>
+        <div class="info-item"><label>Usuario Roblox</label><span>${el.robloxUser||'—'}</span></div>
         <div class="info-item"><label>Placa</label><span class="mono">${el.placa}</span></div>
         <div class="info-item"><label>Rango</label><span>${el.rango}</span></div>
         <div class="info-item"><label>Adscripción</label><span>${el.adscripcion||'—'}</span></div>
@@ -1133,7 +1186,7 @@ function renderMiPerfil(){
   const recs=elem.records||[];
   el.innerHTML=`<div class="profile-card">
     <div class="profile-hdr">
-      <div class="avatar">${elem.nombre[0]}</div>
+      <div class="avatar" style="background-image: url('${elem.robloxAvatarUrl}'); background-size: cover; background-position: center;">${elem.robloxAvatarUrl ? '' : elem.nombre[0]}</div>
       <div>
         <div class="profile-name">${elem.nombre}</div>
         <div class="profile-placa">${elem.placa}</div>
@@ -1142,6 +1195,7 @@ function renderMiPerfil(){
       </div>
     </div>
     <div class="info-grid" style="margin-bottom:18px">
+      <div class="info-item"><label>Usuario Roblox</label><span>${elem.robloxUser||'—'}</span></div>
       <div class="info-item"><label>Turno</label><span>${elem.turno||'—'}</span></div>
       <div class="info-item"><label>CURP / ID</label><span>${elem.curp||'—'}</span></div>
     </div>
