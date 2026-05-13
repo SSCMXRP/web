@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SSC CDMX — Sistema Interno</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#07101e;--panel:#0b1728;--card:#0f1e34;--card2:#121f36;
+  --border:#1a2e4a;--accent:#1a6aff;--green:#00c47a;--red:#ff3b55;
+  --gold:#f0c040;--text:#b8cce8;--muted:#476080;--white:#deeaff;--orange:#ff8c42;
+}
+body{background:var(--navy);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.025) 3px,rgba(0,0,0,.025) 4px)}
+h1,h2,h3,h4{font-family:'Rajdhani',sans-serif;letter-spacing:.05em}
+
+/* ── Layout ── */
+.app{display:flex;flex-direction:column;min-height:100vh}
+.view{display:none}.view.active{display:block}
+
+/* ── Topbar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:60px;
+  background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.logo-badge{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#a07010,var(--gold));
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+  box-shadow:0 0 16px rgba(240,192,64,.4)}
+.topbar-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--white)}
+.topbar-sub{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.placa-b{font-family:'Share Tech Mono',monospace;font-size:11px;padding:3px 9px;border-radius:4px;
+  background:rgba(26,106,255,.15);border:1px solid rgba(26,106,255,.3);color:var(--accent)}
+.role-b{font-size:10px;padding:3px 8px;border-radius:3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.rb-owner{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);color:var(--gold)}
+.rb-admin{background:rgba(0,196,122,.12);border:1px solid rgba(0,196,122,.3);color:var(--green)}
+.rb-elem {background:rgba(26,106,255,.12);border:1px solid rgba(26,106,255,.3);color:var(--accent)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:5px;border:none;
+  cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;transition:all .14s;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:#3a7bff;box-shadow:0 0 16px rgba(26,106,255,.4)}
+.btn-green{background:var(--green);color:#001a0e;font-weight:600}
+.btn-green:hover:not(:disabled){box-shadow:0 0 16px rgba(0,196,122,.35)}
+.btn-red{background:rgba(255,59,85,.12);border:1px solid rgba(255,59,85,.28);color:var(--red)}
+.btn-red:hover:not(:disabled){background:rgba(255,59,85,.22)}
+.btn-ghost{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover:not(:disabled){background:rgba(255,255,255,.09)}
+.btn-gold{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.28);color:var(--gold)}
+.btn-gold:hover:not(:disabled){background:rgba(240,192,64,.22)}
+.btn-orange{background:rgba(255,140,66,.12);border:1px solid rgba(255,140,66,.28);color:var(--orange)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+
+/* ── Main ── */
+.main{flex:1;padding:24px 28px;max-width:1200px;margin:0 auto;width:100%}
+
+/* ── Login ── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--navy);background-image:radial-gradient(ellipse 80% 50% at 50% -5%,rgba(26,106,255,.14) 0%,transparent 68%)}
+.login-box{width:380px;padding:40px 32px;background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.login-logo{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#8a6008,var(--gold));
+  display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px;
+  box-shadow:0 0 28px rgba(240,192,64,.4)}
+.login-title{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;color:var(--white);text-align:center}
+.login-sub{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.12em;text-transform:uppercase;margin-bottom:24px}
+
+/* ── Fields ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border-radius:5px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--white);
+  font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border .12s;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:75px}
+.field input::placeholder{color:var(--muted)}
+.field select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234d6a90' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field select option{background:#0b1728;color:#deeaff}
+
+.err-msg{background:rgba(255,59,85,.1);border:1px solid rgba(255,59,85,.25);color:var(--red);
+  border-radius:5px;padding:8px 12px;font-size:12px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ok-msg{background:rgba(0,196,122,.1);border:1px solid rgba(0,196,122,.25);color:var(--green);
+  border-radius:5px;padding:8px 12px;font-size:12px;margin-bottom:12px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.link-btn{background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;
+  text-decoration:underline;font-family:'Barlow',sans-serif;padding:0}
+.link-btn:hover{color:#7ab0ff}
+
+/* ── Section header ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+.sec-hdr h2{font-size:20px;color:var(--white);display:flex;align-items:center;gap:8px}
+
+/* ── Cards ── */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:18px}
+.menu-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:28px 20px;cursor:pointer;transition:all .17s;display:flex;flex-direction:column;
+  align-items:center;gap:10px;text-align:center;position:relative}
+.menu-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.menu-card-icon{font-size:34px}
+.menu-card-title{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--white)}
+.menu-card-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.card-badge{position:absolute;top:9px;right:9px;background:var(--red);color:#fff;
+  border-radius:20px;font-size:10px;font-weight:700;padding:2px 7px}
+
+/* ── Stats ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:15px 18px}
+.stat-val{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:var(--white)}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+/* ── Table ── */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:rgba(255,255,255,.03);padding:10px 14px;text-align:left;font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid rgba(26,46,74,.45);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.013)}
+.mono{font-family:'Share Tech Mono',monospace;font-size:12px}
+
+/* ── Modal ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:500;padding:16px;display:none}
+.modal-ov.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:10px;width:100%;
+  max-width:500px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 28px 70px rgba(0,0,0,.65)}
+.modal h3{font-size:18px;color:var(--white);margin-bottom:16px}
+
+/* ── Profile ── */
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px}
+.profile-hdr{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#003ab8);
+  display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;
+  font-weight:700;font-size:22px;color:#fff;box-shadow:0 0 18px rgba(26,106,255,.3);flex-shrink:0}
+.avatar-gold{background:linear-gradient(135deg,#a07010,var(--gold));box-shadow:0 0 18px rgba(240,192,64,.3)}
+.profile-name{font-size:20px;font-weight:700;color:var(--white)}
+.profile-placa{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--accent)}
+.profile-rank{font-size:12px;color:var(--muted);margin-top:2px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-item label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px}
+.info-item span{font-size:13px;color:var(--white)}
+
+/* ── Records ── */
+.rec-list{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.rec{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;
+  padding:11px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.rec.sancion{border-left:3px solid var(--red)}
+.rec.elogio{border-left:3px solid var(--green)}
+.rec.nota{border-left:3px solid var(--accent)}
+.rec-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.tag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:3px;display:inline-block}
+.tag-sancion{background:rgba(255,59,85,.15);color:var(--red);border:1px solid rgba(255,59,85,.25)}
+.tag-elogio{background:rgba(0,196,122,.15);color:var(--green);border:1px solid rgba(0,196,122,.25)}
+.tag-nota{background:rgba(26,106,255,.15);color:var(--accent);border:1px solid rgba(26,106,255,.25)}
+.tag-pend{background:rgba(255,140,66,.15);color:var(--orange);border:1px solid rgba(255,140,66,.25)}
+.tag-aprov{background:rgba(0,196,122,.15);color:var(--green);border:1px solid rgba(0,196,122,.25)}
+.tag-rechaz{background:rgba(255,59,85,.15);color:var(--red);border:1px solid rgba(255,59,85,.25)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
+.chip-active{background:rgba(0,196,122,.1);color:var(--green);border:1px solid rgba(0,196,122,.22)}
+.chip-baja{background:rgba(255,59,85,.1);color:var(--red);border:1px solid rgba(255,59,85,.22)}
+.chip-suspend{background:rgba(240,192,64,.1);color:var(--gold);border:1px solid rgba(240,192,64,.22)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;background:rgba(255,255,255,.04);border-radius:6px;padding:3px;margin-bottom:16px}
+.tab{flex:1;padding:6px;border-radius:4px;border:none;cursor:pointer;font-family:'Barlow',sans-serif;
+  font-size:12px;font-weight:500;transition:all .12s;background:none;color:var(--muted)}
+.tab.active{background:var(--accent);color:#fff}
+
+/* ── Pend cards ── */
+.pend-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px}
+.pend-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.auth-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+  background:var(--card2);border:1px solid var(--border);border-radius:7px;margin-bottom:8px;gap:10px;flex-wrap:wrap}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:22px;right:22px;z-index:1000;background:var(--panel);border:1px solid var(--border);
+  border-radius:7px;padding:10px 16px;font-size:13px;color:var(--white);box-shadow:0 8px 28px rgba(0,0,0,.5);
+  animation:toastIn .2s ease;pointer-events:none}
+@keyframes toastIn{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── Search ── */
+.search-wrap{position:relative;max-width:280px;margin-bottom:13px}
+.search-wrap input{padding-left:30px}
+.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
+
+/* ── Inline edit ── */
+.inline-input{width:100%;padding:6px 9px;border-radius:5px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:12px;
+  outline:none;transition:border .12s}
+.inline-input:focus{border-color:var(--accent)}
+.inline-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%234d6a90' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;cursor:pointer}
+
+.empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px}
+.hidden{display:none!important}
+.flex-gap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+@media(max-width:640px){.main{padding:14px}.topbar{padding:0 12px}.info-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ════════════ LOGIN ════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🛡️</div>
+    <div class="login-title">SSC CDMX</div>
+    <div class="login-sub">Sistema Interno · Roleplay MX</div>
+
+    <div id="login-err" class="err-msg hidden"></div>
+    <div id="login-ok"  class="ok-msg  hidden"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <div class="field"><label>Número de Placa</label>
+        <input id="l-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="field"><label>Contraseña</label>
+        <input id="l-pass" type="password" placeholder="••••••••"/></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">Iniciar sesión</button>
+      <div class="divider"></div>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">
+        ¿Eres nuevo? <button class="link-btn" onclick="switchForm('reg')">Solicitar registro</button>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-reg" class="hidden">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Tu solicitud quedará pendiente hasta que un administrador la apruebe.</p>
+      <div class="field"><label>Placa</label><input id="r-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="field"><label>Nombre completo</label><input id="r-nombre" placeholder="Nombre en el RP"/></div>
+      <div class="field"><label>Rango</label>
+        <select id="r-rango"><option>Policía</option><option>Cabo</option><option>Sargento</option><option>Suboficial</option><option>Oficial</option><option>Subinspector</option><option>Inspector</option><option>Subcomisario</option><option>Comisario</option><option>Director</option></select></div>
+      <div class="field"><label>Adscripción / Sector</label><input id="r-adsc" placeholder="Sector Cuauhtémoc..."/></div>
+      <div class="field"><label>Contraseña</label><input id="r-pass" type="password" placeholder="Mín. 6 caracteres"/></div>
+      <div class="field"><label>Confirmar contraseña</label><input id="r-pass2" type="password"/></div>
+      <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doRegister()">+ Enviar solicitud</button>
+      <div class="divider"></div>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">
+        ¿Ya tienes cuenta? <button class="link-btn" onclick="switchForm('login')">Iniciar sesión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ APP ════════════ -->
+<div id="app-screen" class="app hidden">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <button id="back-btn" class="btn btn-ghost btn-sm hidden" onclick="goHome()">◀ Volver</button>
+      <div id="topbar-logo" class="logo-badge">🛡️</div>
+      <div id="topbar-info">
+        <div class="topbar-title">SSC CDMX</div>
+        <div class="topbar-sub">Sistema Interno · Roleplay MX</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="top-placa" class="placa-b"></span>
+      <span id="top-role"  class="role-b"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">⇥ Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ── HOME ── -->
+    <div id="view-home" class="view active">
+      <div>
+        <h2 id="home-title" style="font-size:22px;color:var(--white)"></h2>
+        <p style="color:var(--muted);font-size:13px;margin-top:2px">SSC CDMX — Sistema Interno · Roleplay MX</p>
+      </div>
+      <div id="home-stats" class="stats-row hidden" style="margin-top:18px"></div>
+      <div id="home-cards" class="menu-grid"></div>
+    </div>
+
+    <!-- ── ADMINS ── -->
+    <div id="view-admins" class="view">
+      <div class="sec-hdr">
+        <h2>⭐ Gestión de Administradores</h2>
+        <div class="flex-gap">
+          <button class="btn btn-gold" onclick="openModal('modal-addauth')">+ Autorizar Placa</button>
+          <button class="btn btn-primary" onclick="openModal('modal-addadmin')">+ Crear Cuenta Admin</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="auth-tab" onclick="switchTab(this,'auth-tab')">Placas Autorizadas</button>
+        <button class="tab" data-tab="cuentas-tab" onclick="switchTab(this,'cuentas-tab')">Cuentas Admin</button>
+      </div>
+      <div id="auth-tab">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Placas que el Dueño del Sitio ha autorizado para tener acceso admin.</p>
+        <div id="auth-list"></div>
+      </div>
+      <div id="cuentas-tab" class="hidden">
+        <div class="tbl-wrap"><div id="admins-table-body"></div></div>
+      </div>
+    </div>
+
+    <!-- ── REGISTROS ── -->
+    <div id="view-registros" class="view">
+      <div class="sec-hdr">
+        <h2>📋 Registros de Personal</h2>
+        <div class="flex-gap" id="reg-filter-btns">
+          <button class="btn btn-sm btn-primary" onclick="filterPending('pendiente',this)">Pendientes</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterPending('aprobado',this)">Aprobados</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterPending('rechazado',this)">Rechazados</button>
+          <button class="btn btn-sm btn-ghost" onclick="filterPending('todos',this)">Todos</button>
+        </div>
+      </div>
+      <div id="pending-list"></div>
+    </div>
+
+    <!-- ── ELEMENTOS ── -->
+    <div id="view-elementos" class="view">
+      <div class="sec-hdr">
+        <h2>🛡️ Personal SSC</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-crearel')">+ Crear Elemento</button>
+      </div>
+      <div class="search-wrap"><input id="el-search" placeholder="Buscar placa o nombre..." oninput="renderElements()"/></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Placa</th><th>Nombre</th><th>Rango</th><th>Adscripción</th><th>Estado</th><th>Registros</th><th></th></tr></thead>
+          <tbody id="elements-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── EXPEDIENTE ── -->
+    <div id="view-expediente" class="view">
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:14px" onclick="navTo('elementos')">◀ Volver al listado</button>
+      <div id="expediente-content"></div>
+    </div>
+
+    <!-- ── REPORTES ── -->
+    <div id="view-reportes" class="view">
+      <div class="sec-hdr">
+        <h2>📄 Reportes</h2>
+        <button class="btn btn-primary" onclick="openModal('modal-reporte')">+ Nuevo Reporte</button>
+      </div>
+      <div id="reports-list"></div>
+    </div>
+
+    <!-- ── MI PERFIL ── -->
+    <div id="view-miperfil" class="view">
+      <div id="miperfil-content"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Autorizar placa (owner) -->
+<div id="modal-addauth" class="modal-ov">
+  <div class="modal">
+    <h3>🔑 Autorizar Placa Admin</h3>
+    <div id="addauth-err" class="err-msg hidden"></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Agrega la placa que tendrá permiso administrativo.</p>
+    <div class="field"><label>Placa</label><input id="aa-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
+    <div class="field"><label>Nombre</label><input id="aa-nombre" placeholder="Nombre en el RP"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-gold" onclick="addAuth()">✓ Confirmar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-addauth')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Crear cuenta admin (owner) -->
+<div id="modal-addadmin" class="modal-ov">
+  <div class="modal">
+    <h3>⭐ Crear Cuenta Administrador</h3>
+    <div id="addadmin-err" class="err-msg hidden"></div>
+    <div class="field"><label>Placa</label><input id="ad-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
+    <div class="field"><label>Nombre</label><input id="ad-nombre"/></div>
+    <div class="field"><label>Contraseña</label><input id="ad-pass" type="password"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-green" onclick="addAdmin()">✓ Crear</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-addadmin')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Crear elemento (admin) -->
+<div id="modal-crearel" class="modal-ov">
+  <div class="modal">
+    <h3>+ Crear Elemento</h3>
+    <div id="crearel-err" class="err-msg hidden"></div>
+    <div class="field"><label>Placa</label><input id="ce-placa" placeholder="MX-XX" oninput="this.value=this.value.toUpperCase()"/></div>
+    <div class="field"><label>Nombre</label><input id="ce-nombre"/></div>
+    <div class="field"><label>Rango</label>
+      <select id="ce-rango"><option>Policía</option><option>Cabo</option><option>Sargento</option><option>Suboficial</option><option>Oficial</option><option>Subinspector</option><option>Inspector</option><option>Subcomisario</option><option>Comisario</option><option>Director</option></select></div>
+    <div class="field"><label>Adscripción</label><input id="ce-adsc"/></div>
+    <div class="field"><label>Contraseña inicial</label><input id="ce-pass" type="password"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-primary" onclick="createElemento()">✓ Crear</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-crearel')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar registro (expediente) -->
+<div id="modal-registro" class="modal-ov">
+  <div class="modal">
+    <h3>📁 Nuevo Registro</h3>
+    <div class="field"><label>Tipo</label>
+      <select id="reg-tipo">
+        <option value="sancion">Sanción Administrativa</option>
+        <option value="elogio">Elogio / Reconocimiento</option>
+        <option value="nota">Nota Interna</option>
+      </select>
+    </div>
+    <div class="field"><label>Descripción</label><textarea id="reg-desc" placeholder="Detalla el registro..."></textarea></div>
+    <div class="field"><label>Registrado por</label><input id="reg-autor"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-primary" onclick="addRecord()">✓ Guardar</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-registro')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reporte -->
+<div id="modal-reporte" class="modal-ov">
+  <div class="modal">
+    <h3>📄 Nuevo Reporte</h3>
+    <div class="field"><label>Tipo</label>
+      <select id="rep-tipo">
+        <option>Incidente</option><option>Informe de patrullaje</option>
+        <option>Queja ciudadana</option><option>Uso de fuerza</option>
+        <option>Accidente</option><option>Otro</option>
+      </select>
+    </div>
+    <div class="field"><label>Descripción</label><textarea id="rep-desc" placeholder="Detalla el reporte..." style="min-height:90px"></textarea></div>
+    <div class="field"><label>Elementos involucrados (opcional)</label><input id="rep-inv" placeholder="Placas o nombres"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-primary" onclick="createReport()">✓ Crear Reporte</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-reporte')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  CONFIG — OWNERS (dueños del sitio)
+// ════════════════════════════════════════
+const OWNERS = [
+  { placa:"MX-06", password:"kracccea2026", nombre:"kracccea", titulo:"Director General de Asuntos Internos" }
+];
+
+// ════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════
+const S = {
+  get:(k,d=[])=>{ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{return d;} },
+  set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
+};
+const initStore=()=>{
+  ['ssc_elements','ssc_admins','ssc_reports','ssc_pending','ssc_adminreqs'].forEach(k=>{ if(!localStorage.getItem(k)) S.set(k,[]); });
+};
+
+const nowStr=()=>new Date().toLocaleString('es-MX',{timeZone:'America/Mexico_City'});
+const RANGOS=['Policía','Cabo','Sargento','Suboficial','Oficial','Subinspector','Inspector','Subcomisario','Comisario','Director'];
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let session=null;
+let currentExpediente=null; // placa del elemento abierto
+let pendingFilter='pendiente';
+
+const getElements =()=>S.get('ssc_elements');
+const getAdmins   =()=>S.get('ssc_admins');
+const getReports  =()=>S.get('ssc_reports');
+const getPending  =()=>S.get('ssc_pending');
+const getAuthReqs =()=>S.get('ssc_adminreqs');
+const saveElements=(d)=>S.set('ssc_elements',d);
+const saveAdmins  =(d)=>S.set('ssc_admins',d);
+const saveReports =(d)=>S.set('ssc_reports',d);
+const savePending =(d)=>S.set('ssc_pending',d);
+const saveAuthReqs=(d)=>S.set('ssc_adminreqs',d);
+
+// ════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════
+let toastTimer=null;
+function toast(msg){
+  let t=document.querySelector('.toast');
+  if(t) t.remove();
+  t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t&&t.remove(),3200);
+}
+
+// ════════════════════════════════════════
+//  MODAL
+// ════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-ov')) e.target.classList.remove('open'); });
+
+function showErr(id,msg){ const el=document.getElementById(id); el.textContent=msg; el.classList.remove('hidden'); }
+function hideErr(id){ document.getElementById(id).classList.add('hidden'); }
+
+// ════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ════════════════════════════════════════
+function switchForm(f){
+  document.getElementById('form-login').classList.toggle('hidden', f!=='login');
+  document.getElementById('form-reg').classList.toggle('hidden', f!=='reg');
+  document.getElementById('login-err').classList.add('hidden');
+  document.getElementById('login-ok').classList.add('hidden');
+}
+
+function doLogin(){
+  const placa=document.getElementById('l-placa').value.trim().toUpperCase();
+  const pass=document.getElementById('l-pass').value;
+  document.getElementById('login-err').classList.add('hidden');
+  if(!placa||!pass){ showLoginErr('Completa todos los campos.'); return; }
+
+  const own=OWNERS.find(o=>o.placa===placa&&o.password===pass);
+  if(own){ startSession({placa,role:'owner',nombre:own.nombre,titulo:own.titulo}); return; }
+
+  const adm=getAdmins().find(a=>a.placa===placa&&a.password===pass);
+  if(adm){ startSession({placa,role:'admin',nombre:adm.nombre}); return; }
+
+  const el=getElements().find(e=>e.placa===placa&&e.password===pass);
+  if(el){ startSession({placa,role:'element',nombre:el.nombre}); return; }
+
+  showLoginErr('Placa o contraseña incorrectos, o tu cuenta aún no está aprobada.');
+}
+
+function doRegister(){
+  const placa=document.getElementById('r-placa').value.trim().toUpperCase();
+  const nombre=document.getElementById('r-nombre').value.trim();
+  const rango=document.getElementById('r-rango').value;
+  const adsc=document.getElementById('r-adsc').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  document.getElementById('login-err').classList.add('hidden');
+  document.getElementById('login-ok').classList.add('hidden');
+
+  if(!placa||!nombre||!pass||!pass2){ showLoginErr('Completa todos los campos.'); return; }
+  if(pass!==pass2){ showLoginErr('Las contraseñas no coinciden.'); return; }
+  if(pass.length<6){ showLoginErr('Contraseña: mínimo 6 caracteres.'); return; }
+  if(getElements().find(e=>e.placa===placa)){ showLoginErr('Esa placa ya está registrada.'); return; }
+  if(getPending().find(e=>e.placa===placa)){ showLoginErr('Ya hay una solicitud pendiente con esa placa.'); return; }
+
+  savePending([...getPending(), {placa,nombre,rango,adscripcion:adsc,password:pass,status:'pendiente',solicitadoEn:nowStr(),records:[]}]);
+  const ok=document.getElementById('login-ok');
+  ok.textContent='Solicitud enviada. Espera aprobación de un administrador.';
+  ok.classList.remove('hidden');
+  switchForm('login');
+  ['r-placa','r-nombre','r-adsc','r-pass','r-pass2'].forEach(id=>document.getElementById(id).value='');
+}
+
+function showLoginErr(msg){ const el=document.getElementById('login-err'); el.textContent=msg; el.classList.remove('hidden'); }
+
+function startSession(s){
+  session=s;
+  initStore();
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('hidden');
+  document.getElementById('top-placa').textContent=s.placa;
+  const rl={owner:'Dueño del Sitio',admin:'Administrador',element:'Elemento'};
+  const rc={owner:'rb-owner',admin:'rb-admin',element:'rb-elem'};
+  const rb=document.getElementById('top-role');
+  rb.textContent=rl[s.role]; rb.className='role-b '+rc[s.role];
+  renderHome();
+  navTo('home');
+}
+
+function logout(){
+  session=null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-screen').classList.add('hidden');
+  document.getElementById('l-placa').value='';
+  document.getElementById('l-pass').value='';
+}
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+const VIEWS=['home','admins','registros','elementos','expediente','reportes','miperfil'];
+
+function navTo(v){
+  VIEWS.forEach(id=>{
+    const el=document.getElementById('view-'+id);
+    if(el) el.classList.toggle('active', id===v);
+  });
+  const showBack = v!=='home';
+  document.getElementById('back-btn').classList.toggle('hidden',!showBack);
+  document.getElementById('topbar-logo').classList.toggle('hidden',showBack);
+  document.getElementById('topbar-info').classList.toggle('hidden',showBack);
+  if(v==='admins')    renderAdmins();
+  if(v==='registros') renderPending();
+  if(v==='elementos') renderElements();
+  if(v==='reportes')  renderReports();
+  if(v==='miperfil')  renderMiPerfil();
+}
+
+function goHome(){ renderHome(); navTo('home'); }
+
+// ════════════════════════════════════════
+//  HOME
+// ════════════════════════════════════════
+function renderHome(){
+  if(!session) return;
+  const isOwn=session.role==='owner';
+  const isAdm=session.role==='owner'||session.role==='admin';
+  document.getElementById('home-title').textContent='Bienvenido, '+session.nombre;
+
+  if(isOwn){
+    const els=getElements(); const adms=getAdmins(); const pend=getPending().filter(p=>p.status==='pendiente');
+    document.getElementById('home-stats').innerHTML=`
+      <div class="stat"><div class="stat-val">${els.length}</div><div class="stat-lbl">Elementos</div></div>
+      <div class="stat"><div class="stat-val">${adms.length}</div><div class="stat-lbl">Admins</div></div>
+      <div class="stat"><div class="stat-val">${els.filter(e=>e.status==='activo').length}</div><div class="stat-lbl">Activos</div></div>
+      <div class="stat"><div class="stat-val">${pend.length}</div><div class="stat-lbl">Pend. Aprob.</div></div>`;
+    document.getElementById('home-stats').classList.remove('hidden');
+  } else {
+    document.getElementById('home-stats').classList.add('hidden');
+  }
+
+  const pCount=getPending().filter(p=>p.status==='pendiente').length;
+  const cards=[
+    isOwn&&{id:'admins',icon:'⭐',title:'Gestión de Admins',desc:'Autoriza placas con acceso administrativo.',badge:null},
+    isAdm&&{id:'registros',icon:'📋',title:'Registros',desc:'Solicitudes de registro pendientes.',badge:pCount||null},
+    isAdm&&{id:'elementos',icon:'🛡️',title:'Asuntos Internos',desc:'Expedientes, sanciones y gestión del personal.',badge:null},
+    {id:'reportes',icon:'📄',title:'Reportes',desc:'Crea o consulta reportes de incidentes.',badge:null},
+    {id:'miperfil',icon:'👤',title:'Mi Perfil',desc:'Consulta tu expediente personal.',badge:null},
+  ].filter(Boolean);
+
+  document.getElementById('home-cards').innerHTML=cards.map(c=>`
+    <div class="menu-card" onclick="navTo('${c.id}')">
+      ${c.badge?`<span class="card-badge">${c.badge}</span>`:''}
+      <div class="menu-card-icon">${c.icon}</div>
+      <div class="menu-card-title">${c.title}</div>
+      <div class="menu-card-desc">${c.desc}</div>
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════
+//  TABS helper
+// ════════════════════════════════════════
+function switchTab(btn,targetId){
+  const parent=btn.closest('.view')||btn.closest('#view-admins');
+  parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  // Hide all tab content siblings
+  const allPanes=document.querySelectorAll('#auth-tab,#cuentas-tab');
+  allPanes.forEach(p=>p.classList.add('hidden'));
+  document.getElementById(targetId).classList.remove('hidden');
+  if(targetId==='cuentas-tab') renderAdminsTable();
+  else renderAuthList();
+}
+
+// ════════════════════════════════════════
+//  ADMINS VIEW
+// ════════════════════════════════════════
+function renderAdmins(){ renderAuthList(); renderAdminsTable(); }
+
+function renderAuthList(){
+  const reqs=getAuthReqs();
+  const el=document.getElementById('auth-list');
+  if(!reqs.length){ el.innerHTML='<div class="empty">No hay placas autorizadas aún.</div>'; return; }
+  el.innerHTML=reqs.map(a=>`
+    <div class="auth-item">
+      <div>
+        <span class="mono" style="color:var(--gold);margin-right:10px">${a.placa}</span>
+        <span style="color:var(--white);font-size:13px">${a.nombre}</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">Autorizado el ${a.addedAt} · por ${a.addedBy}</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="revokeAuth('${a.placa}')">🚫 Revocar</button>
+    </div>`).join('');
+}
+
+function renderAdminsTable(){
+  const adms=getAdmins();
+  const el=document.getElementById('admins-table-body');
+  if(!adms.length){ el.innerHTML='<div class="empty">Sin cuentas admin creadas.</div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>Placa</th><th>Nombre</th><th>Creado</th><th></th></tr></thead><tbody>
+    ${adms.map(a=>`<tr>
+      <td><span class="mono">${a.placa}</span></td>
+      <td style="color:var(--white)">${a.nombre}</td>
+      <td style="font-size:11px;color:var(--muted)">${a.createdAt||'—'}</td>
+      <td><button class="btn btn-red btn-sm" onclick="removeAdmin('${a.placa}')">🗑 Eliminar</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function addAuth(){
+  hideErr('addauth-err');
+  const placa=document.getElementById('aa-placa').value.trim().toUpperCase();
+  const nombre=document.getElementById('aa-nombre').value.trim();
+  if(!placa||!nombre){ showErr('addauth-err','Completa placa y nombre.'); return; }
+  const reqs=getAuthReqs();
+  if(reqs.find(a=>a.placa===placa)){ showErr('addauth-err','Esa placa ya está autorizada.'); return; }
+  saveAuthReqs([...reqs,{placa,nombre,addedAt:nowStr(),addedBy:session.placa}]);
+  toast('Placa autorizada: '+placa);
+  document.getElementById('aa-placa').value=''; document.getElementById('aa-nombre').value='';
+  closeModal('modal-addauth'); renderAuthList();
+}
+
+function revokeAuth(placa){
+  if(!confirm('¿Quitar autorización admin a '+placa+'?')) return;
+  saveAuthReqs(getAuthReqs().filter(a=>a.placa!==placa));
+  toast('Autorización revocada.'); renderAuthList();
+}
+
+function addAdmin(){
+  hideErr('addadmin-err');
+  const placa=document.getElementById('ad-placa').value.trim().toUpperCase();
+  const nombre=document.getElementById('ad-nombre').value.trim();
+  const pass=document.getElementById('ad-pass').value;
+  if(!placa||!nombre||!pass){ showErr('addadmin-err','Completa todos los campos.'); return; }
+  const adms=getAdmins();
+  if(adms.find(a=>a.placa===placa)){ showErr('addadmin-err','Esa placa ya tiene cuenta admin.'); return; }
+  saveAdmins([...adms,{placa,nombre,password:pass,createdAt:nowStr()}]);
+  toast('Cuenta admin creada: '+placa);
+  ['ad-placa','ad-nombre','ad-pass'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-addadmin'); renderAdminsTable();
+}
+
+function removeAdmin(placa){
+  if(!confirm('¿Eliminar cuenta admin de '+placa+'?')) return;
+  saveAdmins(getAdmins().filter(a=>a.placa!==placa));
+  toast('Admin eliminado.'); renderAdminsTable();
+}
+
+// ════════════════════════════════════════
+//  REGISTROS (pending)
+// ════════════════════════════════════════
+function filterPending(f,btn){
+  pendingFilter=f;
+  document.querySelectorAll('#reg-filter-btns .btn').forEach(b=>{b.className='btn btn-sm btn-ghost';});
+  btn.className='btn btn-sm btn-primary';
+  renderPending();
+}
+
+function renderPending(){
+  const all=getPending();
+  const shown=pendingFilter==='todos'?all:all.filter(p=>p.status===pendingFilter);
+  const el=document.getElementById('pending-list');
+  if(!shown.length){ el.innerHTML='<div class="tbl-wrap"><div class="empty">No hay solicitudes en este estado.</div></div>'; return; }
+  const tagMap={pendiente:'tag-pend',aprobado:'tag-aprov',rechazado:'tag-rechaz'};
+  el.innerHTML=shown.map(p=>`
+    <div class="pend-card" id="pcard-${p.placa}">
+      <div class="pend-hdr">
+        <div class="flex-gap">
+          <span class="mono" style="color:var(--gold)">${p.placa}</span>
+          <span style="color:var(--white);font-weight:600">${p.nombre}</span>
+          <span class="tag ${tagMap[p.status]||'tag-pend'}">${p.status}</span>
+        </div>
+        <span style="font-size:11px;color:var(--muted)">${p.solicitadoEn||''}</span>
+      </div>
+      <div id="pcard-body-${p.placa}">${renderPendingBody(p)}</div>
+    </div>`).join('');
+}
+
+function renderPendingBody(p){
+  if(p.status!=='pendiente') return `
+    <div class="info-grid" style="margin-bottom:10px">
+      <div class="info-item"><label>Rango</label><span>${p.rango}</span></div>
+      <div class="info-item"><label>Adscripción</label><span>${p.adscripcion||'—'}</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted)">${p.status==='aprobado'?`Aprobado el ${p.aprobadoEn} por ${p.aprobadoPor}`:`Rechazado el ${p.rechazadoEn}`}</div>`;
+  return `
+    <div class="info-grid" style="margin-bottom:12px">
+      <div class="info-item"><label>Rango</label><span>${p.rango}</span></div>
+      <div class="info-item"><label>Adscripción</label><span>${p.adscripcion||'—'}</span></div>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-primary btn-sm" onclick="editPending('${p.placa}')">✏ Revisar & Aprobar</button>
+      <button class="btn btn-green btn-sm" onclick="approvePending('${p.placa}')">✓ Aprobar directo</button>
+      <button class="btn btn-red btn-sm" onclick="rejectPending('${p.placa}')">✗ Rechazar</button>
+    </div>`;
+}
+
+function editPending(placa){
+  const all=getPending(); const p=all.find(x=>x.placa===placa); if(!p) return;
+  const rangoOpts=RANGOS.map(r=>`<option${r===p.rango?' selected':''}>${r}</option>`).join('');
+  document.getElementById('pcard-body-'+placa).innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Placa</label>
+        <input class="inline-input" id="ep-placa-${placa}" value="${p.placa}"/></div>
+      <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Nombre</label>
+        <input class="inline-input" id="ep-nombre-${placa}" value="${p.nombre}"/></div>
+      <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Rango</label>
+        <select class="inline-input inline-select" id="ep-rango-${placa}">${rangoOpts}</select></div>
+      <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Adscripción</label>
+        <input class="inline-input" id="ep-adsc-${placa}" value="${p.adscripcion||''}"/></div>
+    </div>
+    <div class="flex-gap">
+      <button class="btn btn-green btn-sm" onclick="approvePendingEdited('${placa}')">✓ Aprobar</button>
+      <button class="btn btn-ghost btn-sm" onclick="renderPending()">Cancelar</button>
+    </div>`;
+}
+
+function approvePendingEdited(placa){
+  const all=getPending(); const idx=all.findIndex(x=>x.placa===placa);
+  if(idx===-1) return;
+  const newPlaca=document.getElementById('ep-placa-'+placa)?.value?.toUpperCase()||placa;
+  const nombre=document.getElementById('ep-nombre-'+placa)?.value||all[idx].nombre;
+  const rango=document.getElementById('ep-rango-'+placa)?.value||all[idx].rango;
+  const adscripcion=document.getElementById('ep-adsc-'+placa)?.value||'';
+  const p={...all[idx],placa:newPlaca,nombre,rango,adscripcion,status:'aprobado',aprobadoEn:nowStr(),aprobadoPor:session.placa};
+  all[idx]=p; savePending(all);
+  const els=getElements();
+  saveElements([...els,{placa:newPlaca,nombre,rango,adscripcion,password:p.password,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
+  toast('Registro aprobado: '+newPlaca); renderPending(); renderHome();
+}
+
+function approvePending(placa){
+  const all=getPending(); const idx=all.findIndex(x=>x.placa===placa); if(idx===-1) return;
+  const p={...all[idx],status:'aprobado',aprobadoEn:nowStr(),aprobadoPor:session.placa};
+  all[idx]=p; savePending(all);
+  saveElements([...getElements(),{placa:p.placa,nombre:p.nombre,rango:p.rango,adscripcion:p.adscripcion,password:p.password,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
+  toast('Aprobado: '+placa); renderPending(); renderHome();
+}
+
+function rejectPending(placa){
+  if(!confirm('¿Rechazar solicitud de '+placa+'?')) return;
+  const all=getPending(); const idx=all.findIndex(x=>x.placa===placa); if(idx===-1) return;
+  all[idx]={...all[idx],status:'rechazado',rechazadoEn:nowStr()};
+  savePending(all); toast('Solicitud rechazada.'); renderPending();
+}
+
+// ════════════════════════════════════════
+//  ELEMENTOS
+// ════════════════════════════════════════
+function renderElements(){
+  const q=(document.getElementById('el-search')?.value||'').toLowerCase();
+  const els=getElements().filter(e=>
+    e.placa.toLowerCase().includes(q)||e.nombre.toLowerCase().includes(q));
+  const stCls={activo:'chip-active',baja:'chip-baja',suspendido:'chip-suspend'};
+  const stLbl={activo:'Activo',baja:'Baja',suspendido:'Suspendido'};
+  const tbody=document.getElementById('elements-tbody');
+  if(!els.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--muted)">Sin resultados.</td></tr>'; return; }
+  tbody.innerHTML=els.map(e=>`<tr>
+    <td><span class="mono">${e.placa}</span></td>
+    <td style="color:var(--white);font-weight:500">${e.nombre}</td>
+    <td style="font-size:12px;color:var(--muted)">${e.rango}</td>
+    <td style="font-size:12px">${e.adscripcion||'—'}</td>
+    <td><span class="chip ${stCls[e.status]||'chip-active'}">⬤ ${stLbl[e.status]||'Activo'}</span></td>
+    <td style="font-size:12px;color:var(--muted)">${(e.records||[]).length}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openExpediente('${e.placa}')">📁 Ver</button></td>
+  </tr>`).join('');
+}
+
+function createElemento(){
+  hideErr('crearel-err');
+  const placa=document.getElementById('ce-placa').value.trim().toUpperCase();
+  const nombre=document.getElementById('ce-nombre').value.trim();
+  const rango=document.getElementById('ce-rango').value;
+  const adsc=document.getElementById('ce-adsc').value.trim();
+  const pass=document.getElementById('ce-pass').value;
+  if(!placa||!nombre||!pass){ showErr('crearel-err','Placa, nombre y contraseña son obligatorios.'); return; }
+  if(getElements().find(e=>e.placa===placa)){ showErr('crearel-err','Placa ya registrada.'); return; }
+  saveElements([...getElements(),{placa,nombre,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
+  toast('Elemento creado: '+placa);
+  ['ce-placa','ce-nombre','ce-adsc','ce-pass'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-crearel'); renderElements(); renderHome();
+}
+
+// ════════════════════════════════════════
+//  EXPEDIENTE
+// ════════════════════════════════════════
+function openExpediente(placa){
+  currentExpediente=placa;
+  navTo('expediente');
+  renderExpediente();
+}
+
+function renderExpediente(){
+  const placa=currentExpediente;
+  const els=getElements(); const el=els.find(e=>e.placa===placa);
+  if(!el){ document.getElementById('expediente-content').innerHTML='<div class="empty">Elemento no encontrado.</div>'; return; }
+  const stCls={activo:'chip-active',baja:'chip-baja',suspendido:'chip-suspend'};
+  const sanciones=(el.records||[]).filter(r=>r.type==='sancion').length;
+  document.getElementById('expediente-content').innerHTML=`
+    <div class="profile-card">
+      <div class="profile-hdr">
+        <div class="avatar">${el.nombre[0]||'?'}</div>
+        <div style="flex:1">
+          <div class="profile-name">${el.nombre}</div>
+          <div class="profile-placa">${el.placa}</div>
+          <div class="profile-rank">${el.rango} · ${el.adscripcion||'Sin adscripción'}</div>
+          <div style="margin-top:7px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span class="chip ${stCls[el.status]||'chip-active'}">⬤ ${el.status||'Activo'}</span>
+            ${sanciones?`<span class="chip chip-baja">⚠ ${sanciones} sanción${sanciones>1?'es':''}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start;flex-shrink:0">
+          <select onchange="changeStatus('${placa}',this.value)" style="padding:5px 8px;border-radius:5px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:12px;cursor:pointer;font-family:Barlow,sans-serif">
+            <option value="activo"${(el.status||'activo')==='activo'?' selected':''}>Activo</option>
+            <option value="suspendido"${el.status==='suspendido'?' selected':''}>Suspendido</option>
+            <option value="baja"${el.status==='baja'?' selected':''}>Baja</option>
+          </select>
+          <button class="btn btn-red btn-sm" onclick="deleteElemento('${placa}')">🗑 Eliminar</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="expTab(this,'exp-info-${placa}')">📋 Información</button>
+        <button class="tab" onclick="expTab(this,'exp-sanc-${placa}')">⚠ Sanciones (${sanciones})</button>
+        <button class="tab" onclick="expTab(this,'exp-all-${placa}')">📁 Todos los registros (${(el.records||[]).length})</button>
+      </div>
+
+      <div id="exp-info-${placa}">${renderExpInfo(el)}</div>
+      <div id="exp-sanc-${placa}" class="hidden">${renderExpRecords(el,'sancion')}</div>
+      <div id="exp-all-${placa}"  class="hidden">${renderExpRecords(el,'todos')}</div>
+    </div>`;
+}
+
+function expTab(btn,targetId){
+  const card=btn.closest('.profile-card');
+  card.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const placa=currentExpediente;
+  [`exp-info-${placa}`,`exp-sanc-${placa}`,`exp-all-${placa}`].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('hidden');
+  });
+  const target=document.getElementById(targetId);
+  if(target) target.classList.remove('hidden');
+}
+
+function renderExpInfo(el){
+  const rangoOpts=RANGOS.map(r=>`<option${r===el.rango?' selected':''}>${r}</option>`).join('');
+  const turnoOpts=['Matutino','Vespertino','Nocturno','Mixto'].map(r=>`<option${r===el.turno?' selected':''}>${r}</option>`).join('');
+  return `
+    <div style="margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" onclick="toggleEditInfo('${el.placa}')">✏ Editar información</button>
+    </div>
+    <div id="info-view-${el.placa}">
+      <div class="info-grid">
+        <div class="info-item"><label>Nombre</label><span>${el.nombre}</span></div>
+        <div class="info-item"><label>Placa</label><span class="mono">${el.placa}</span></div>
+        <div class="info-item"><label>Rango</label><span>${el.rango}</span></div>
+        <div class="info-item"><label>Adscripción</label><span>${el.adscripcion||'—'}</span></div>
+        <div class="info-item"><label>Turno</label><span>${el.turno||'—'}</span></div>
+        <div class="info-item"><label>CURP / ID</label><span>${el.curp||'—'}</span></div>
+      </div>
+      ${el.notas?`<div style="margin-top:14px"><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Notas generales</div><p style="font-size:13px;line-height:1.5">${el.notas}</p></div>`:''}
+    </div>
+    <div id="info-edit-${el.placa}" class="hidden">
+      <div class="info-grid">
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Nombre</label>
+          <input class="inline-input" id="ei-nombre-${el.placa}" value="${el.nombre}"/></div>
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Placa</label>
+          <input class="inline-input" id="ei-placa-${el.placa}" value="${el.placa}"/></div>
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Rango</label>
+          <select class="inline-input inline-select" id="ei-rango-${el.placa}">${rangoOpts}</select></div>
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Adscripción</label>
+          <input class="inline-input" id="ei-adsc-${el.placa}" value="${el.adscripcion||''}"/></div>
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Turno</label>
+          <select class="inline-input inline-select" id="ei-turno-${el.placa}">${turnoOpts}</select></div>
+        <div><label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">CURP / ID</label>
+          <input class="inline-input" id="ei-curp-${el.placa}" value="${el.curp||''}"/></div>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Notas generales</label>
+        <textarea class="inline-input" id="ei-notas-${el.placa}" style="min-height:60px">${el.notas||''}</textarea>
+      </div>
+      <div class="flex-gap" style="margin-top:10px">
+        <button class="btn btn-green btn-sm" onclick="saveInfo('${el.placa}')">✓ Guardar</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleEditInfo('${el.placa}')">Cancelar</button>
+      </div>
+    </div>`;
+}
+
+function toggleEditInfo(placa){
+  document.getElementById('info-view-'+placa).classList.toggle('hidden');
+  document.getElementById('info-edit-'+placa).classList.toggle('hidden');
+}
+
+function saveInfo(placa){
+  const els=getElements(); const idx=els.findIndex(e=>e.placa===placa); if(idx===-1) return;
+  els[idx]={...els[idx],
+    nombre:document.getElementById('ei-nombre-'+placa)?.value||els[idx].nombre,
+    placa:document.getElementById('ei-placa-'+placa)?.value?.toUpperCase()||placa,
+    rango:document.getElementById('ei-rango-'+placa)?.value||els[idx].rango,
+    adscripcion:document.getElementById('ei-adsc-'+placa)?.value||'',
+    turno:document.getElementById('ei-turno-'+placa)?.value||'',
+    curp:document.getElementById('ei-curp-'+placa)?.value||'',
+    notas:document.getElementById('ei-notas-'+placa)?.value||''};
+  const newPlaca=els[idx].placa;
+  saveElements(els); currentExpediente=newPlaca;
+  toast('Información guardada.'); renderExpediente();
+}
+
+function renderExpRecords(el,filter){
+  const recs=(el.records||[]).filter(r=>filter==='todos'||r.type===filter);
+  const tagCls={sancion:'tag-sancion',elogio:'tag-elogio',nota:'tag-nota'};
+  const recCls={sancion:'sancion',elogio:'elogio',nota:'nota'};
+  const label=filter==='sancion'?'sanción':'registro';
+  const btnTxt=filter==='sancion'?'+ Agregar Sanción':'+ Agregar Registro';
+  return `
+    <div style="margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="openAddRecord('${el.placa}','${filter==='sancion'?'sancion':'nota'}')">
+        ${btnTxt}
+      </button>
+    </div>
+    ${!recs.length?`<div class="empty">Sin ${label}s en el expediente.</div>`:`
+    <div class="rec-list">
+      ${[...recs].reverse().map(r=>`
+        <div class="rec ${recCls[r.type]}">
+          <div style="flex:1">
+            <div style="margin-bottom:5px"><span class="tag ${tagCls[r.type]}">${r.type}</span></div>
+            <div style="font-size:13px;color:var(--white);line-height:1.45">${r.desc}</div>
+            <div class="rec-meta">Por: ${r.autor} — ${r.fecha}</div>
+          </div>
+          <button class="btn btn-red btn-xs" onclick="deleteRecord('${el.placa}',${r.id})">🗑</button>
+        </div>`).join('')}
+    </div>`}`;
+}
+
+function openAddRecord(placa,defaultType){
+  currentExpediente=placa;
+  document.getElementById('reg-tipo').value=defaultType==='sancion'?'sancion':'nota';
+  document.getElementById('reg-desc').value='';
+  document.getElementById('reg-autor').value=session.nombre+' ('+session.placa+')';
+  openModal('modal-registro');
+}
+
+function addRecord(){
+  const placa=currentExpediente;
+  const tipo=document.getElementById('reg-tipo').value;
+  const desc=document.getElementById('reg-desc').value.trim();
+  const autor=document.getElementById('reg-autor').value.trim();
+  if(!desc) return;
+  const els=getElements(); const idx=els.findIndex(e=>e.placa===placa); if(idx===-1) return;
+  els[idx].records=[...(els[idx].records||[]),{id:Date.now(),type:tipo,desc,autor,fecha:nowStr()}];
+  saveElements(els); toast('Registro agregado.'); closeModal('modal-registro'); renderExpediente();
+}
+
+function deleteRecord(placa,id){
+  if(!confirm('¿Eliminar este registro?')) return;
+  const els=getElements(); const idx=els.findIndex(e=>e.placa===placa); if(idx===-1) return;
+  els[idx].records=(els[idx].records||[]).filter(r=>r.id!==id);
+  saveElements(els); toast('Registro eliminado.'); renderExpediente();
+}
+
+function changeStatus(placa,status){
+  const els=getElements(); const idx=els.findIndex(e=>e.placa===placa); if(idx===-1) return;
+  els[idx].status=status; saveElements(els); toast('Estado actualizado.'); renderExpediente();
+}
+
+function deleteElemento(placa){
+  if(!confirm('¿Eliminar elemento '+placa+'? Su acceso quedará bloqueado permanentemente.')) return;
+  saveElements(getElements().filter(e=>e.placa!==placa));
+  toast('Elemento eliminado. Su cuenta ya no tiene acceso.'); navTo('elementos');
+}
+
+// ════════════════════════════════════════
+//  REPORTES
+// ════════════════════════════════════════
+function renderReports(){
+  const isAdmin=session.role==='owner'||session.role==='admin';
+  const reps=getReports();
+  const shown=isAdmin?reps:reps.filter(r=>r.autorPlaca===session.placa);
+  const el=document.getElementById('reports-list');
+  if(!shown.length){ el.innerHTML='<div class="tbl-wrap"><div class="empty">Sin reportes aún.</div></div>'; return; }
+  const canDel=r=>isAdmin||r.autorPlaca===session.placa;
+  el.innerHTML=shown.map(r=>`
+    <div class="pend-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="flex:1">
+          <div class="flex-gap" style="margin-bottom:7px">
+            <span class="tag tag-nota">${r.tipo}</span>
+            <span style="font-size:11px;color:var(--muted)">${r.fecha}</span>
+          </div>
+          <p style="font-size:13px;color:var(--white);line-height:1.5">${r.desc}</p>
+          ${r.involucrados?`<div class="rec-meta" style="margin-top:5px">Involucrados: ${r.involucrados}</div>`:''}
+          <div class="rec-meta">Por: ${r.autorNombre} (${r.autorPlaca})</div>
+        </div>
+        ${canDel(r)?`<button class="btn btn-red btn-sm" onclick="deleteReport(${r.id})">🗑</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function createReport(){
+  const tipo=document.getElementById('rep-tipo').value;
+  const desc=document.getElementById('rep-desc').value.trim();
+  const inv=document.getElementById('rep-inv').value.trim();
+  if(!desc) return;
+  saveReports([{id:Date.now(),tipo,desc,involucrados:inv,autorPlaca:session.placa,autorNombre:session.nombre,fecha:nowStr()},...getReports()]);
+  toast('Reporte creado.'); closeModal('modal-reporte');
+  document.getElementById('rep-desc').value=''; document.getElementById('rep-inv').value='';
+  renderReports();
+}
+
+function deleteReport(id){
+  if(!confirm('¿Eliminar reporte?')) return;
+  saveReports(getReports().filter(r=>r.id!==id)); toast('Eliminado.'); renderReports();
+}
+
+// ════════════════════════════════════════
+//  MI PERFIL
+// ════════════════════════════════════════
+function renderMiPerfil(){
+  const el=document.getElementById('miperfil-content');
+  if(session.role==='owner'){
+    const own=OWNERS.find(o=>o.placa===session.placa);
+    el.innerHTML=`<div class="profile-card">
+      <div class="profile-hdr">
+        <div class="avatar avatar-gold">⭐</div>
+        <div>
+          <div class="profile-name">${own?.nombre||session.nombre}</div>
+          <div class="profile-placa">${session.placa}</div>
+          <div class="profile-rank">${own?.titulo||'Dueño del Sitio'}</div>
+          <div style="margin-top:6px"><span class="role-b rb-owner">Dueño del Sitio</span></div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--muted)">Cuenta con acceso total al sistema. Gestiona admins, registros y expedientes desde el menú principal.</p>
+    </div>`;
+    return;
+  }
+  const elem=getElements().find(e=>e.placa===session.placa);
+  if(!elem){
+    el.innerHTML='<div class="profile-card"><div class="empty">Tu perfil no está en el sistema o aún está pendiente de aprobación.</div></div>'; return;
+  }
+  const stCls={activo:'chip-active',baja:'chip-baja',suspendido:'chip-suspend'};
+  const tagCls={sancion:'tag-sancion',elogio:'tag-elogio',nota:'tag-nota'};
+  const recCls={sancion:'sancion',elogio:'elogio',nota:'nota'};
+  const recs=elem.records||[];
+  el.innerHTML=`<div class="profile-card">
+    <div class="profile-hdr">
+      <div class="avatar">${elem.nombre[0]}</div>
+      <div>
+        <div class="profile-name">${elem.nombre}</div>
+        <div class="profile-placa">${elem.placa}</div>
+        <div class="profile-rank">${elem.rango} · ${elem.adscripcion||'Sin adscripción'}</div>
+        <div style="margin-top:6px"><span class="chip ${stCls[elem.status]||'chip-active'}">⬤ ${elem.status||'Activo'}</span></div>
+      </div>
+    </div>
+    <div class="info-grid" style="margin-bottom:18px">
+      <div class="info-item"><label>Turno</label><span>${elem.turno||'—'}</span></div>
+      <div class="info-item"><label>CURP / ID</label><span>${elem.curp||'—'}</span></div>
+    </div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">
+      Mi Expediente (${recs.length} registros)
+    </div>
+    ${!recs.length?'<div class="empty">Sin registros en tu expediente.</div>':`
+    <div class="rec-list">
+      ${[...recs].reverse().map(r=>`
+        <div class="rec ${recCls[r.type]}">
+          <div>
+            <div style="margin-bottom:5px"><span class="tag ${tagCls[r.type]}">${r.type}</span></div>
+            <div style="font-size:13px;color:var(--white);line-height:1.45">${r.desc}</div>
+            <div class="rec-meta">Por: ${r.autor} — ${r.fecha}</div>
+          </div>
+        </div>`).join('')}
+    </div>`}
+  </div>`;
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+initStore();
+document.getElementById('l-placa').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('l-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
