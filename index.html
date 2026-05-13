@@ -557,29 +557,27 @@ async function doRegister(){
   if(getElements().find(e=>e.placa===placa)){ showLoginErr('Esa placa ya está registrada.'); return; }
 
   // Fetch Roblox data
-  let robloxUserId=null, robloxAvatarUrl=null;
+  // Obtener avatar de Roblox usando servicio proxy
+  let robloxAvatarUrl = `https://www.roblox.com/bust-thumbnails/v1/user/avatar-headshot?userId=0&width=150&height=150&format=Png`;
   try {
-    const userRes = await fetch('https://users.roblox.com/v1/usernames/users', {
+    const proxyUrl = `https://corsproxy.io/?url=https://users.roblox.com/v1/usernames/users`;
+    const userRes = await fetch(proxyUrl, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({usernames: [robloxUser]})
     });
-    const userData = await userRes.json();
-    if(userData.data && userData.data.length > 0){
-      robloxUserId = userData.data[0].id;
-      const avatarRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${robloxUserId}&size=150x150&format=Png&isCircular=false`);
-      const avatarData = await avatarRes.json();
-      if(avatarData.data && avatarData.data.length > 0){
-        robloxAvatarUrl = avatarData.data[0].imageUrl;
+    if(userRes.ok) {
+      const userData = await userRes.json();
+      if(userData.data && userData.data.length > 0){
+        const robloxUserId = userData.data[0].id;
+        robloxAvatarUrl = `https://www.roblox.com/bust-thumbnails/v1/user/avatar-headshot?userId=${robloxUserId}&width=150&height=150&format=Png`;
       }
-    } else {
-      showLoginErr('Usuario de Roblox no encontrado.'); return;
     }
   } catch(e) {
-    showLoginErr('Error al verificar usuario de Roblox.'); return;
+    console.log('Avatar por defecto - validación de Roblox no disponible');
   }
 
-  saveElements([...getElements(), {placa,nombre,robloxUser,robloxUserId,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr()}]);
+  saveElements([...getElements(), {placa,nombre,robloxUser,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr()}]);
   const ok=document.getElementById('login-ok');
   ok.textContent='Cuenta creada exitosamente. Ya puedes iniciar sesión.';
   ok.classList.remove('hidden');
@@ -893,30 +891,27 @@ async function createElemento(){
   if(!/^MX-\d{2}$/.test(placa)){ showErr('crearel-err','La placa debe ser en formato MX-XX.'); return; }
   if(getElements().find(e=>e.placa===placa)){ showErr('crearel-err','Placa ya registrada.'); return; }
 
-  // Fetch Roblox data
-  let robloxUserId=null, robloxAvatarUrl=null;
+  // Obtener avatar de Roblox usando servicio proxy
+  let robloxAvatarUrl = `https://www.roblox.com/bust-thumbnails/v1/user/avatar-headshot?userId=0&width=150&height=150&format=Png`;
   try {
-    const userRes = await fetch('https://users.roblox.com/v1/usernames/users', {
+    const proxyUrl = `https://corsproxy.io/?url=https://users.roblox.com/v1/usernames/users`;
+    const userRes = await fetch(proxyUrl, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({usernames: [robloxUser]})
     });
-    const userData = await userRes.json();
-    if(userData.data && userData.data.length > 0){
-      robloxUserId = userData.data[0].id;
-      const avatarRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${robloxUserId}&size=150x150&format=Png&isCircular=false`);
-      const avatarData = await avatarRes.json();
-      if(avatarData.data && avatarData.data.length > 0){
-        robloxAvatarUrl = avatarData.data[0].imageUrl;
+    if(userRes.ok) {
+      const userData = await userRes.json();
+      if(userData.data && userData.data.length > 0){
+        const robloxUserId = userData.data[0].id;
+        robloxAvatarUrl = `https://www.roblox.com/bust-thumbnails/v1/user/avatar-headshot?userId=${robloxUserId}&width=150&height=150&format=Png`;
       }
-    } else {
-      showErr('crearel-err','Usuario de Roblox no encontrado.'); return;
     }
   } catch(e) {
-    showErr('crearel-err','Error al verificar usuario de Roblox.'); return;
+    console.log('Avatar por defecto - validación de Roblox no disponible');
   }
 
-  saveElements([...getElements(),{placa,nombre,robloxUser,robloxUserId,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
+  saveElements([...getElements(),{placa,nombre,robloxUser,robloxAvatarUrl,rango,adscripcion:adsc,password:pass,records:[],status:'activo',createdAt:nowStr(),createdBy:session.placa}]);
   toast('Elemento creado: '+placa);
   ['ce-placa','ce-nombre','ce-roblox','ce-adsc','ce-pass'].forEach(id=>document.getElementById(id).value='');
   closeModal('modal-crearel'); renderElements(); renderHome();
